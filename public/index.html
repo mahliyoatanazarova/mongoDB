@@ -1,0 +1,524 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Socket Chat Rooms</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b1020;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.chat-app {
+    width: 1000px;
+    height: 650px;
+    display: flex;
+    background: #141b2d;
+    border: 1px solid #263149;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+    width: 270px;
+    background: #101729;
+    padding: 25px 18px;
+    border-right: 1px solid #263149;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: bold;
+    margin-bottom: 35px;
+}
+
+.logo span {
+    color: #818cf8;
+}
+
+.section-title {
+    color: #8490a8;
+    font-size: 12px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.room {
+    padding: 14px;
+    margin-bottom: 8px;
+    border-radius: 9px;
+    cursor: pointer;
+    color: #cbd5e1;
+    background: transparent;
+    transition: .2s;
+}
+
+.room:hover,
+.room.active {
+    background: #252e48;
+    color: white;
+}
+
+.room.active {
+    border-left: 3px solid #818cf8;
+}
+
+.create-room {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    flex-direction: column;
+}
+
+.create-room input {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid #35415d;
+    background: #202a41;
+    color: white;
+    outline: none;
+}
+
+.create-room button {
+    padding: 11px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* MAIN */
+
+.chat-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    height: 85px;
+    padding: 20px 25px;
+    border-bottom: 1px solid #263149;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header h2 {
+    font-size: 19px;
+    margin-bottom: 6px;
+}
+
+.header p {
+    color: #8490a8;
+    font-size: 12px;
+}
+
+.status {
+    color: #22c55e;
+    font-size: 12px;
+}
+
+/* MESSAGES */
+
+.messages {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.message {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.avatar {
+    width: 38px;
+    height: 38px;
+    background: #37456c;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.message-content {
+    max-width: 75%;
+}
+
+.message-info {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 7px;
+    font-size: 12px;
+}
+
+.message-info span {
+    color: #8490a8;
+}
+
+.bubble {
+    padding: 12px 15px;
+    background: #252e48;
+    border-radius: 3px 12px 12px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.my-message {
+    justify-content: flex-end;
+}
+
+.my-message .message-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.my-message .bubble {
+    background: #5559cf;
+    border-radius: 12px 3px 12px 12px;
+}
+
+/* INPUT */
+
+.chat-footer {
+    padding: 20px;
+    border-top: 1px solid #263149;
+}
+
+.input-box {
+    display: flex;
+    gap: 10px;
+    background: #202a41;
+    padding: 8px;
+    border-radius: 10px;
+}
+
+.input-box input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+}
+
+.input-box button {
+    background: #6366f1;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.empty {
+    color: #8490a8;
+    text-align: center;
+    margin: auto;
+    font-size: 14px;
+}
+
+@media(max-width: 650px) {
+    body {
+        padding: 0;
+    }
+
+    .chat-app {
+        height: 100vh;
+        border-radius: 0;
+    }
+
+    .sidebar {
+        width: 115px;
+        padding: 15px 8px;
+    }
+
+    .logo {
+        font-size: 15px;
+    }
+
+    .room {
+        padding: 10px 5px;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .header {
+        padding: 15px;
+    }
+
+    .messages {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-app">
+
+    <aside class="sidebar">
+
+        <div class="logo">Chat<span>Room.</span></div>
+
+        <p class="section-title">Available rooms</p>
+
+        <div class="room active" data-room="General">
+            💬 General
+        </div>
+
+        <div class="room" data-room="Developers">
+            💻 Developers
+        </div>
+
+        <div class="room" data-room="Gaming">
+            🎮 Gaming
+        </div>
+
+        <div class="room" data-room="Design">
+            🎨 Design
+        </div>
+
+        <div class="create-room">
+            <input
+                type="text"
+                id="roomInput"
+                placeholder="Room name..."
+            >
+
+            <button id="joinBtn">Join / Create Room +</button>
+        </div>
+
+    </aside>
+
+
+    <main class="chat-main">
+
+        <header class="header">
+
+            <div>
+                <h2 id="roomTitle"># General</h2>
+                <p>Socket.io real-time chat</p>
+            </div>
+
+            <div class="status">
+                ● Connected
+            </div>
+
+        </header>
+
+
+        <div class="messages" id="messages">
+            <div class="empty">
+                Welcome! Join a room and start chatting.
+            </div>
+        </div>
+
+
+        <footer class="chat-footer">
+
+            <form class="input-box" id="chatForm">
+
+                <input
+                    type="text"
+                    id="messageInput"
+                    placeholder="Type your message..."
+                    autocomplete="off"
+                >
+
+                <button type="submit">Send ➤</button>
+
+            </form>
+
+        </footer>
+
+    </main>
+
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+const socket = io();
+
+const messages = document.getElementById("messages");
+const input = document.getElementById("messageInput");
+const form = document.getElementById("chatForm");
+
+const roomInput = document.getElementById("roomInput");
+const joinBtn = document.getElementById("joinBtn");
+
+let currentRoom = "General";
+
+
+// JOIN ROOM
+
+function joinRoom(room) {
+
+    currentRoom = room;
+
+    socket.emit("join.room", room);
+
+    document.getElementById("roomTitle").textContent = "# " + room;
+
+    document.querySelectorAll(".room").forEach(item => {
+        item.classList.toggle(
+            "active",
+            item.dataset.room === room
+        );
+    });
+
+    messages.innerHTML = `
+        <div class="empty">
+            You joined ${room} room!
+        </div>
+    `;
+
+}
+
+
+// SIDEBAR ROOM CLICK
+
+document.querySelectorAll(".room").forEach(room => {
+
+    room.addEventListener("click", () => {
+        joinRoom(room.dataset.room);
+    });
+
+});
+
+
+// CREATE / JOIN NEW ROOM
+
+joinBtn.addEventListener("click", () => {
+
+    const room = roomInput.value.trim();
+
+    if (!room) return;
+
+    let existingRoom = [...document.querySelectorAll(".room")]
+        .find(item => item.dataset.room === room);
+
+    if (!existingRoom) {
+
+        const newRoom = document.createElement("div");
+
+        newRoom.className = "room";
+        newRoom.dataset.room = room;
+        newRoom.textContent = "💬 " + room;
+
+        newRoom.addEventListener("click", () => {
+            joinRoom(room);
+        });
+
+        document.querySelector(".create-room").before(newRoom);
+
+    }
+
+    joinRoom(room);
+
+    roomInput.value = "";
+
+});
+
+
+// SEND MESSAGE
+
+form.addEventListener("submit", (e) => {
+
+    e.preventDefault();
+
+    const message = input.value.trim();
+
+    if (!message || !currentRoom) return;
+
+    socket.emit("chat message", {
+        room: currentRoom,
+        message: message
+    });
+
+    input.value = "";
+
+});
+
+
+// RECEIVE MESSAGE
+
+socket.on("chat message", (data) => {
+
+    const message = document.createElement("div");
+
+    message.className = "message my-message";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = "U";
+
+    const content = document.createElement("div");
+    content.className = "message-content";
+
+    const info = document.createElement("div");
+    info.className = "message-info";
+
+    const username = document.createElement("strong");
+    username.textContent = data.username;
+
+    const time = document.createElement("span");
+    time.textContent = data.time;
+
+    info.append(username, time);
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = data.message;
+
+    content.append(info, bubble);
+
+    message.append(content, avatar);
+
+    messages.appendChild(message);
+
+    messages.scrollTop = messages.scrollHeight;
+
+});
+
+
+// DEFAULT ROOM
+
+joinRoom("General");
+
+</script>
+
+</body>
+</html>

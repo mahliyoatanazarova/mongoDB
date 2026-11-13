@@ -1,0 +1,180 @@
+1.
+
+[
+  {
+    name: "Ali",
+    age: 20
+  },
+  {
+    name: "Vali",
+    age: 25
+  },
+  {
+    name: "Sardor",
+    age: 18
+  },
+  {
+    name: "Madina",
+    age: 30
+  }
+]
+
+async function getYoungestAndOldest() {
+  const users = await User.find();
+
+  if (users.length === 0) {
+    return null;
+  }
+
+  const youngest = users.reduce((min, user) => {
+    return user.age < min.age ? user : min;
+  });
+
+  const oldest = users.reduce((max, user) => {
+    return user.age > max.age ? user : max;
+  });
+
+  return {
+    youngest,
+    oldest
+  };
+}
+
+
+
+{
+  youngest: {
+    name: "Sardor",
+    age: 18
+  },
+  oldest: {
+    name: "Madina",
+    age: 30
+  }
+}
+
+
+
+
+2.
+[
+  { _id: 1, name: "Ali" },
+  { _id: 2, name: "Vali" },
+  { _id: 3, name: "Madina" }
+]
+
+
+[
+  { userId: 1, bookId: 101 },
+  { userId: 1, bookId: 102 },
+  { userId: 1, bookId: 103 },
+  { userId: 2, bookId: 104 },
+  { userId: 3, bookId: 105 },
+  { userId: 3, bookId: 106 }
+]
+
+const result = await Order.aggregate([
+  {
+    $group: {
+      _id: "$userId",
+      totalBooks: { $sum: 1 }
+    }
+  },
+  {
+    $sort: {
+      totalBooks: -1
+    }
+  },
+  {
+    $limit: 1
+  },
+  {
+    $lookup: {
+      from: "users",
+      localField: "_id",
+      foreignField: "_id",
+      as: "user"
+    }
+  },
+  {
+    $unwind: "$user"
+  }
+]);
+
+console.log(result);
+
+
+
+[
+  {
+    _id: 1,
+    totalBooks: 3,
+    user: {
+      _id: 1,
+      name: "Ali"
+    }
+  }
+]
+
+
+
+3.
+[
+  {
+    title: "Atomic Habits",
+    genre: "Self-help"
+  },
+  {
+    title: "Rich Dad Poor Dad",
+    genre: "Finance"
+  },
+  {
+    title: "The Power of Habit",
+    genre: "Self-help"
+  },
+  {
+    title: "The Psychology of Money",
+    genre: "Finance"
+  },
+  {
+    title: "Harry Potter",
+    genre: "Fantasy"
+  }
+]
+
+
+
+
+const result = await Book.aggregate([
+  {
+    $group: {
+      _id: "$genre",
+      books: {
+        $push: "$title"
+      },
+      totalBooks: {
+        $sum: 1
+      }
+    }
+  }
+]);
+
+console.log(result);
+
+[
+  {
+    _id: "Self-help",
+    books: ["Atomic Habits", "The Power of Habit"],
+    totalBooks: 2
+  },
+  {
+    _id: "Finance",
+    books: ["Rich Dad Poor Dad", "The Psychology of Money"],
+    totalBooks: 2
+  },
+  {
+    _id: "Fantasy",
+    books: ["Harry Potter"],
+    totalBooks: 1
+  }
+]
